@@ -2,5 +2,6 @@
 
 export(get.accurate.omdb.info)
 export(get.batch.accurate.omdb.info)
+export(get.rough.omdb.info)
 export(set.omdb.api.key)
 export(unset.omdb.api.key)
