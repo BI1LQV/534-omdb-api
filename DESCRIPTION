@@ -1,0 +1,12 @@
+Package: OMDB.API
+Title: Retrieve data from the OMDB API
+Version: 0.0.0.9000
+Authors@R: 
+    c(person("BI1LQV", "bi1lqv.y@gmail.com", role = c("aut", "cre"),
+             email = "bi1lqv.y@gmail.com"),
+      person("Yunfan", "Wu", role = "aut"))
+Description: Retrieve data from the OMDB API
+License: MIT
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.2
