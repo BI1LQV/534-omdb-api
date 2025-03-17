@@ -1,0 +1,30 @@
+---
+title: "OMDB API Movie Fetcher"
+author: "Jiahao Yuan, Yunfan Wu"
+date: "2025-03-17"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{OMDB API Movie Fetcher}
+  %\VignetteEngine{rmarkdown::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+a31163f2ed41c518397b3b6b2cee6e5c00d8df91
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# OMDB API Movie Fetcher
+
+This package allows you to interact with the OMDB API to fetch movide details based on some movie information. It provides functions to fetch accurate movie information using either a movie title or IMDB ID, or perform rough searches by partial title, and handle movie data in batches.
+
+```{r}
+library(OMDB.API)
+```
+
+
+
+
+
+
+
+
