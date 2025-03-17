@@ -1,0 +1,30 @@
+language: r
+sudo: false
+cache: packages
+
+r:
+  - release
+  - devel
+
+r_packages:
+  - devtools
+  - testthat
+  - roxygen2
+
+before_script:
+  - Rscript scripts/test.r
+
+script:
+  - Rscript scripts/build.r
+
+after_success:
+  - Rscript -e 'covr::codecov()'
+
+deploy:
+  provider: script
+  script: Rscript scripts/build.r
+  on:
+    condition: "$TRAVIS_R_VERSION = release"
+    tags: true
+    all_branches: true
+  skip_cleanup: true 
