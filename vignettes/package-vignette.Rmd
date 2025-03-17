@@ -8,23 +8,129 @@ vignette: >
   %\VignetteEngine{rmarkdown::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
-a31163f2ed41c518397b3b6b2cee6e5c00d8df91
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
 # OMDB API Movie Fetcher
 
-This package allows you to interact with the OMDB API to fetch movide details based on some movie information. It provides functions to fetch accurate movie information using either a movie title or IMDB ID, or perform rough searches by partial title, and handle movie data in batches.
+This package allows you to interact with the OMDB API to fetch movie details based on some movie information. It provides functions to fetch accurate movie information using either a movie title or IMDB ID, or perform rough searches by partial title, and handle movie data in batches.
 
 ```{r}
 library(OMDB.API)
 ```
 
 
+## Functions
+
+### `set.omdb.api.key()`
+
+This function allows you to set your OMDB API key, which is required for making requests to the OMDB API. The API key will be stored in package environment.
+
+#### Parameters:
+
+- `api_key`: Your OMDB API key string (e.g., `"22bda3a2"`).
+
+#### Example:
+
+```{r}
+set.omdb.api.key("22bda3a2")
+```
 
 
+### `unset.omdb.api.key()`
+
+This function removes the OMDB API key from the environment, so that you can use set a new API key to the package environment.
+
+#### Example:
+
+```{r}
+unset.omdb.api.key()
+```
 
 
+### `get.accurate.omdb.info()`
+
+This function fetches detailed information for a movie, either by **IMDb ID** or **title**.
+
+#### Parameters:
+
+- `id`: The IMDb ID of the movie (e.g., `"tt1285016"`).
+- `title`: The title of the movie (e.g., `"Avengers"`).
+- `type`: The type of result, which can be `"movie"`, `"series"`, or `"episode"`.
+- `year`: The release year of the movie.
+- `plot`: The length of the plot to return (`"short"` or `"full"`).
+
+#### Example:
+
+```{r}
+# Set your OMDB API key
+set.omdb.api.key("22bda3a2")
+
+# Fetch movie info by title
+movie_info_1 <- get.accurate.omdb.info(title = "Avengers")
+print(movie_info_1)
+
+# Fetch movie info by IMDb ID
+movie_info_2 <- get.accurate.omdb.info(id = "tt1285016")
+print(movie_info_2)
+```
 
 
+### `get.batch.accurate.omdb.info()`
+
+This function allows you to fetch information for a **batch** of movies, given a list of IMDb IDs.
+
+#### Parameters
+
+- `ids`: A vector of IMDb IDs (e.g., `c("tt1285016", "tt1285017")`).
+
+#### Example
+
+```{r}
+# Fetch information for multiple movies
+movie_ids <- c("tt1285016", "tt1285017")
+batch_info <- get.batch.accurate.omdb.info(ids = movie_ids)
+print(batch_info)
+```
+
+
+### `get.rough.omdb.info()`
+
+This function performs a rough search for movies based on a **partial title**, with optional filters like **minimum rating**, **genre**, and **sort order**.
+
+#### Parameters
+
+- `title`: The partial title of the movie (e.g., `"Avengers"`).
+- `type`: The type of result, which can be `"movie"`, `"series"`, or `"episode"`.
+- `year`: The release year of the movie to filter the results.
+- `min_rating`: The minimum rating for the movie (e.g., 7).
+- `genre`: The genre of the movie (e.g., `"Action"`).
+- `sort_order`: The order in which the results are sorted (`"asc"`, `"desc"`, or `"none"`).
+
+#### Example
+
+```{r}
+# Rough search for movies with title "Avengers" and minimum rating of 7
+rough_results <- get.rough.omdb.info(title = "Avengers", min_rating = 7, genre = "Action")
+print(rough_results)
+
+# Sort the results by IMDb rating in descending order
+sorted_results <- get.rough.omdb.info(title = "Avengers", min_rating = 7, sort_order = "desc")
+print(sorted_results)
+```
+
+## Usage Overview
+
+To use the functions in this package, please follow these steps:
+
+1. Set your OMDB API key using the `set.omdb.api.key()` function. After setting the OMDB API key, you can choose **Steps 2, 3, 4** freely to get your target movie information.
+
+2. Use `get.accurate.omdb.info()` to fetch detailed movie information by IMDb ID or title.
+
+3. Use `get.batch.accurate.omdb.info()` to fetch information for a batch of movies.
+
+4. Use `get.rough.omdb.info()` for rough searches based on a partial title with additional filters (e.g., rating, genre).
+
+5. After finishing, you can remove your API key using `unset.omdb.api.key()`.
