@@ -9,7 +9,8 @@ get.rough.omdb.info(
   type = NULL,
   year = NULL,
   min_rating = NULL,
-  genre = NULL
+  genre = NULL,
+  sort_order = "none"
 )
 }
 \arguments{
@@ -22,6 +23,8 @@ get.rough.omdb.info(
 \item{min_rating}{Optimal minimum rating for the movie}
 
 \item{genre}{Optional genre filter}
+
+\item{sort_order}{Optional sorting order for ratings ("desc", "asc", or "none", default is "none")}
 }
 \value{
 A data frame with movies matching the search criteria
