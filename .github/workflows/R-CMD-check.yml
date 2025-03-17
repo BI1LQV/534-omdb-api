@@ -37,7 +37,7 @@ jobs:
         with:
           error-on: '"error"'
 
-      # 构建源码包并上传为 artifact
+
       - name: Build source package
         run: |
           PKG_VERSION=$(grep "Version:" DESCRIPTION | cut -d' ' -f2)
@@ -47,7 +47,7 @@ jobs:
           echo "PKG_VERSION=${PKG_VERSION}" >> $GITHUB_ENV
 
       - name: Upload package artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: r-package
           path: ${{ env.PKG_FILE }}
@@ -59,7 +59,7 @@ jobs:
     
     steps:
       - name: Download package artifact
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: r-package
 
