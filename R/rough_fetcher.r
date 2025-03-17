@@ -6,13 +6,15 @@ utils::globalVariables(".pkgenv")
 #' @param year Optional year of release
 #' @param min_rating Optimal minimum rating for the movie
 #' @param genre Optional genre filter
+#' @param sort_order Optional sorting order for ratings ("desc", "asc", or "none", default is "none")
 #' @return A data frame with movies matching the search criteria
 #' @export
 get.rough.omdb.info <- function(title,
                                 type = NULL,
                                 year = NULL,
                                 min_rating = NULL,
-                                genre = NULL) {
+                                genre = NULL,
+                                sort_order = "none") {
   
   # Check that the title is provided
   if (is.null(title)) {
@@ -32,6 +34,11 @@ get.rough.omdb.info <- function(title,
   # Validate min_rating parameter if provided
   if (!is.null(min_rating) && (!is.numeric(min_rating) || min_rating < 0 || min_rating > 10)) {
     stop("min_rating must be a numeric value between 0 and 10")
+  }
+  
+  # Validate sort_order parameter
+  if (!sort_order %in% c("desc", "asc", "none")) {
+    stop("sort_order must be one of: 'desc', 'asc', or 'none'")
   }
   
   # Fetch the OMDB API key.
@@ -96,8 +103,11 @@ get.rough.omdb.info <- function(title,
     movies_df <- movies_df[!is.na(movies_df$imdbRating) & movies_df$imdbRating >= min_rating, ]
   }
   
-  # Reorder movies in descending order of imdbRating
-  movies_df <- movies_df[order(-movies_df$imdbRating, na.last = TRUE), ]
+  # Reorder movies based on sort_order (if specified)
+  if (sort_order != "none") {
+    movies_df <- movies_df[order(ifelse(sort_order == "desc", -1, 1) * movies_df$imdbRating, 
+                                na.last = TRUE), ]
+  }
   
   # Return the filtered data frame
   return(movies_df)

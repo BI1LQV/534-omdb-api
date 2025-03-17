@@ -56,8 +56,25 @@ test_that("get.rough.omdb.info filters by minimum rating", {
   expect_true(all(result$imdbRating >= 7, na.rm = TRUE))
 })
 
-# Test movies sorted by imdbRating
-test_that("get.rough.omdb.info sorts movies by imdbRating in descending order", {
-  result <- get.rough.omdb.info("Avengers", min_rating = 5)
-  expect_true(all(diff(result$imdbRating) <= 0, na.rm = TRUE))
+# Test sorting functionality
+test_that("get.rough.omdb.info sorts movies correctly based on sort_order", {
+  # Test invalid sort_order
+  expect_error(
+    get.rough.omdb.info("Avengers", sort_order = "invalid"),
+    "sort_order must be one of: 'desc', 'asc', or 'none'"
+  )
+  
+  # Test descending order
+  result_desc <- get.rough.omdb.info("Avengers", sort_order = "desc")
+  expect_true(all(diff(result_desc$imdbRating) <= 0, na.rm = TRUE))
+  
+  # Test ascending order
+  result_asc <- get.rough.omdb.info("Avengers", sort_order = "asc")
+  expect_true(all(diff(result_asc$imdbRating) >= 0, na.rm = TRUE))
+  
+  # Test no sorting (none)
+  result_none <- get.rough.omdb.info("Avengers", sort_order = "none")
+  # Compare with default behavior
+  result_default <- get.rough.omdb.info("Avengers")
+  expect_equal(result_none$imdbRating, result_default$imdbRating)
 })
