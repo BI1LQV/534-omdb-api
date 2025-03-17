@@ -7,7 +7,7 @@ on:
     branches: [ main, master ]
 
 jobs:
-  test-and-build:
+  package:
     runs-on: ubuntu-latest
     
     steps:
@@ -17,52 +17,17 @@ jobs:
         with:
           r-version: 'release'
 
-      - uses: r-lib/actions/setup-r-dependencies@v2
-        with:
-          packages: |
-            any::devtools
-            any::testthat
-            any::future
-
-      - name: Run unit tests
-        run: Rscript scripts/test.r
-
       - name: Build package
-        run: Rscript scripts/build.r
+        run: bash scripts/package.sh
 
-      - name: Build source package
+      - name: Get package info
         run: |
           PKG_VERSION=$(grep "Version:" DESCRIPTION | cut -d' ' -f2)
           PKG_NAME=$(grep "Package:" DESCRIPTION | cut -d' ' -f2)
-          R CMD build .
           echo "PKG_FILE=${PKG_NAME}_${PKG_VERSION}.tar.gz" >> $GITHUB_ENV
-          echo "PKG_VERSION=${PKG_VERSION}" >> $GITHUB_ENV
 
-      - name: Upload package artifact
+      - name: Upload to GitHub Packages
         uses: actions/upload-artifact@v4
         with:
           name: r-package
           path: ${{ env.PKG_FILE }}
-
-  create-release:
-    needs: test-and-build
-    if: github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-    
-    steps:
-      - name: Download package artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: r-package
-
-      - name: Create Release
-        uses: softprops/action-gh-release@v1
-        with:
-          files: "*.tar.gz"
-          tag_name: v${{ env.PKG_VERSION }}
-          name: Release v${{ env.PKG_VERSION }}
-          draft: false
-          prerelease: false
-          generate_release_notes: true
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
