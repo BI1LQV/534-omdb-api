@@ -1,0 +1,930 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<meta name="author" content="Jiahao Yuan, Yunfan Wu" />
+
+<meta name="date" content="2025-03-17" />
+
+<title>OMDB API Movie Fetcher</title>
+
+<script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
+// be compatible with the behavior of Pandoc < 2.8).
+document.addEventListener('DOMContentLoaded', function(e) {
+  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
+  var i, h, a;
+  for (i = 0; i < hs.length; i++) {
+    h = hs[i];
+    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
+    a = h.attributes;
+    while (a.length > 0) h.removeAttribute(a[0].name);
+  }
+});
+</script>
+
+<style type="text/css">
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+</style>
+
+
+
+<style type="text/css">
+code {
+white-space: pre;
+}
+.sourceCode {
+overflow: visible;
+}
+</style>
+<style type="text/css" data-origin="pandoc">
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } 
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.at { color: #7d9029; } 
+code span.bn { color: #40a070; } 
+code span.bu { color: #008000; } 
+code span.cf { color: #007020; font-weight: bold; } 
+code span.ch { color: #4070a0; } 
+code span.cn { color: #880000; } 
+code span.co { color: #60a0b0; font-style: italic; } 
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.do { color: #ba2121; font-style: italic; } 
+code span.dt { color: #902000; } 
+code span.dv { color: #40a070; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #40a070; } 
+code span.fu { color: #06287e; } 
+code span.im { color: #008000; font-weight: bold; } 
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.kw { color: #007020; font-weight: bold; } 
+code span.op { color: #666666; } 
+code span.ot { color: #007020; } 
+code span.pp { color: #bc7a00; } 
+code span.sc { color: #4070a0; } 
+code span.ss { color: #bb6688; } 
+code span.st { color: #4070a0; } 
+code span.va { color: #19177c; } 
+code span.vs { color: #4070a0; } 
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    var j = 0;
+    while (j < rules.length) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") {
+        j++;
+        continue;
+      }
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') {
+        j++;
+        continue;
+      }
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">OMDB API Movie Fetcher</h1>
+<h4 class="author">Jiahao Yuan, Yunfan Wu</h4>
+<h4 class="date">2025-03-17</h4>
+
+
+
+<div id="omdb-api-movie-fetcher" class="section level1">
+<h1>OMDB API Movie Fetcher</h1>
+<p>This package allows you to interact with the OMDB API to fetch movie
+details based on some movie information. It provides functions to fetch
+accurate movie information using either a movie title or IMDB ID, or
+perform rough searches by partial title, and handle movie data in
+batches.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">library</span>(OMDB.API)</span></code></pre></div>
+<div id="functions" class="section level2">
+<h2>Functions</h2>
+<div id="set.omdb.api.key" class="section level3">
+<h3><code>set.omdb.api.key()</code></h3>
+<p>This function allows you to set your OMDB API key, which is required
+for making requests to the OMDB API. The API key will be stored in
+package environment.</p>
+<div id="parameters" class="section level4">
+<h4>Parameters:</h4>
+<ul>
+<li><code>api_key</code>: Your OMDB API key string (e.g.,
+<code>&quot;22bda3a2&quot;</code>).</li>
+</ul>
+</div>
+<div id="example" class="section level4">
+<h4>Example:</h4>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="fu">set.omdb.api.key</span>(<span class="st">&quot;22bda3a2&quot;</span>)</span></code></pre></div>
+</div>
+</div>
+<div id="unset.omdb.api.key" class="section level3">
+<h3><code>unset.omdb.api.key()</code></h3>
+<p>This function removes the OMDB API key from the environment, so that
+you can use set a new API key to the package environment.</p>
+<div id="example-1" class="section level4">
+<h4>Example:</h4>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="fu">unset.omdb.api.key</span>()</span></code></pre></div>
+</div>
+</div>
+<div id="get.accurate.omdb.info" class="section level3">
+<h3><code>get.accurate.omdb.info()</code></h3>
+<p>This function fetches detailed information for a movie, either by
+<strong>IMDb ID</strong> or <strong>title</strong>.</p>
+<div id="parameters-1" class="section level4">
+<h4>Parameters:</h4>
+<ul>
+<li><code>id</code>: The IMDb ID of the movie (e.g.,
+<code>&quot;tt1285016&quot;</code>).</li>
+<li><code>title</code>: The title of the movie (e.g.,
+<code>&quot;Avengers&quot;</code>).</li>
+<li><code>type</code>: The type of result, which can be
+<code>&quot;movie&quot;</code>, <code>&quot;series&quot;</code>, or
+<code>&quot;episode&quot;</code>.</li>
+<li><code>year</code>: The release year of the movie.</li>
+<li><code>plot</code>: The length of the plot to return
+(<code>&quot;short&quot;</code> or <code>&quot;full&quot;</code>).</li>
+</ul>
+</div>
+<div id="example-2" class="section level4">
+<h4>Example:</h4>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="co"># Set your OMDB API key</span></span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a><span class="fu">set.omdb.api.key</span>(<span class="st">&quot;22bda3a2&quot;</span>)</span>
+<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a></span>
+<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a><span class="co"># Fetch movie info by title</span></span>
+<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a>movie_info_1 <span class="ot">&lt;-</span> <span class="fu">get.accurate.omdb.info</span>(<span class="at">title =</span> <span class="st">&quot;Avengers&quot;</span>)</span>
+<span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a><span class="fu">print</span>(movie_info_1)</span></code></pre></div>
+<pre><code>## $Title
+## [1] &quot;The Avengers&quot;
+## 
+## $Year
+## [1] &quot;2012&quot;
+## 
+## $Rated
+## [1] &quot;PG-13&quot;
+## 
+## $Released
+## [1] &quot;04 May 2012&quot;
+## 
+## $Runtime
+## [1] &quot;143 min&quot;
+## 
+## $Genre
+## [1] &quot;Action, Sci-Fi&quot;
+## 
+## $Director
+## [1] &quot;Joss Whedon&quot;
+## 
+## $Writer
+## [1] &quot;Joss Whedon, Zak Penn&quot;
+## 
+## $Actors
+## [1] &quot;Robert Downey Jr., Chris Evans, Scarlett Johansson&quot;
+## 
+## $Plot
+## [1] &quot;Earth&#39;s mightiest heroes must come together and learn to fight as a team if they are going to stop the mischievous Loki and his alien army from enslaving humanity.&quot;
+## 
+## $Language
+## [1] &quot;English, Russian&quot;
+## 
+## $Country
+## [1] &quot;United States&quot;
+## 
+## $Awards
+## [1] &quot;Nominated for 1 Oscar. 39 wins &amp; 81 nominations total&quot;
+## 
+## $Poster
+## [1] &quot;https://m.media-amazon.com/images/M/MV5BNGE0YTVjNzUtNzJjOS00NGNlLTgxMzctZTY4YTE1Y2Y1ZTU4XkEyXkFqcGc@._V1_SX300.jpg&quot;
+## 
+## $Ratings
+## $Ratings[[1]]
+## $Ratings[[1]]$Source
+## [1] &quot;Internet Movie Database&quot;
+## 
+## $Ratings[[1]]$Value
+## [1] &quot;8.0/10&quot;
+## 
+## 
+## $Ratings[[2]]
+## $Ratings[[2]]$Source
+## [1] &quot;Rotten Tomatoes&quot;
+## 
+## $Ratings[[2]]$Value
+## [1] &quot;91%&quot;
+## 
+## 
+## $Ratings[[3]]
+## $Ratings[[3]]$Source
+## [1] &quot;Metacritic&quot;
+## 
+## $Ratings[[3]]$Value
+## [1] &quot;69/100&quot;
+## 
+## 
+## 
+## $Metascore
+## [1] &quot;69&quot;
+## 
+## $imdbRating
+## [1] &quot;8.0&quot;
+## 
+## $imdbVotes
+## [1] &quot;1,500,024&quot;
+## 
+## $imdbID
+## [1] &quot;tt0848228&quot;
+## 
+## $Type
+## [1] &quot;movie&quot;
+## 
+## $DVD
+## [1] &quot;N/A&quot;
+## 
+## $BoxOffice
+## [1] &quot;$623,357,910&quot;
+## 
+## $Production
+## [1] &quot;N/A&quot;
+## 
+## $Website
+## [1] &quot;N/A&quot;
+## 
+## $Response
+## [1] &quot;True&quot;</code></pre>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="co"># Fetch movie info by IMDb ID</span></span>
+<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a>movie_info_2 <span class="ot">&lt;-</span> <span class="fu">get.accurate.omdb.info</span>(<span class="at">id =</span> <span class="st">&quot;tt1285016&quot;</span>)</span>
+<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a><span class="fu">print</span>(movie_info_2)</span></code></pre></div>
+<pre><code>## $Title
+## [1] &quot;The Social Network&quot;
+## 
+## $Year
+## [1] &quot;2010&quot;
+## 
+## $Rated
+## [1] &quot;PG-13&quot;
+## 
+## $Released
+## [1] &quot;01 Oct 2010&quot;
+## 
+## $Runtime
+## [1] &quot;120 min&quot;
+## 
+## $Genre
+## [1] &quot;Biography, Drama&quot;
+## 
+## $Director
+## [1] &quot;David Fincher&quot;
+## 
+## $Writer
+## [1] &quot;Aaron Sorkin, Ben Mezrich&quot;
+## 
+## $Actors
+## [1] &quot;Jesse Eisenberg, Andrew Garfield, Justin Timberlake&quot;
+## 
+## $Plot
+## [1] &quot;As Harvard student Mark Zuckerberg creates the social networking site that would become known as Facebook, he is sued by the twins who claimed he stole their idea and by the co-founder who was later squeezed out of the business.&quot;
+## 
+## $Language
+## [1] &quot;English, French&quot;
+## 
+## $Country
+## [1] &quot;United States&quot;
+## 
+## $Awards
+## [1] &quot;Won 3 Oscars. 174 wins &amp; 188 nominations total&quot;
+## 
+## $Poster
+## [1] &quot;https://m.media-amazon.com/images/M/MV5BMjlkNTE5ZTUtNGEwNy00MGVhLThmZjMtZjU1NDE5Zjk1NDZkXkEyXkFqcGc@._V1_SX300.jpg&quot;
+## 
+## $Ratings
+## $Ratings[[1]]
+## $Ratings[[1]]$Source
+## [1] &quot;Internet Movie Database&quot;
+## 
+## $Ratings[[1]]$Value
+## [1] &quot;7.8/10&quot;
+## 
+## 
+## $Ratings[[2]]
+## $Ratings[[2]]$Source
+## [1] &quot;Rotten Tomatoes&quot;
+## 
+## $Ratings[[2]]$Value
+## [1] &quot;96%&quot;
+## 
+## 
+## $Ratings[[3]]
+## $Ratings[[3]]$Source
+## [1] &quot;Metacritic&quot;
+## 
+## $Ratings[[3]]$Value
+## [1] &quot;95/100&quot;
+## 
+## 
+## 
+## $Metascore
+## [1] &quot;95&quot;
+## 
+## $imdbRating
+## [1] &quot;7.8&quot;
+## 
+## $imdbVotes
+## [1] &quot;779,958&quot;
+## 
+## $imdbID
+## [1] &quot;tt1285016&quot;
+## 
+## $Type
+## [1] &quot;movie&quot;
+## 
+## $DVD
+## [1] &quot;N/A&quot;
+## 
+## $BoxOffice
+## [1] &quot;$96,962,694&quot;
+## 
+## $Production
+## [1] &quot;N/A&quot;
+## 
+## $Website
+## [1] &quot;N/A&quot;
+## 
+## $Response
+## [1] &quot;True&quot;</code></pre>
+</div>
+</div>
+<div id="get.batch.accurate.omdb.info" class="section level3">
+<h3><code>get.batch.accurate.omdb.info()</code></h3>
+<p>This function allows you to fetch information for a
+<strong>batch</strong> of movies, given a list of IMDb IDs.</p>
+<div id="parameters-2" class="section level4">
+<h4>Parameters</h4>
+<ul>
+<li><code>ids</code>: A vector of IMDb IDs (e.g.,
+<code>c(&quot;tt1285016&quot;, &quot;tt1285017&quot;)</code>).</li>
+</ul>
+</div>
+<div id="example-3" class="section level4">
+<h4>Example</h4>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a><span class="co"># Fetch information for multiple movies</span></span>
+<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a>movie_ids <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;tt1285016&quot;</span>, <span class="st">&quot;tt1285017&quot;</span>)</span>
+<span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a>batch_info <span class="ot">&lt;-</span> <span class="fu">get.batch.accurate.omdb.info</span>(<span class="at">ids =</span> movie_ids)</span>
+<span id="cb8-4"><a href="#cb8-4" tabindex="-1"></a><span class="fu">print</span>(batch_info)</span></code></pre></div>
+<pre><code>## [[1]]
+## [[1]]$Title
+## [1] &quot;The Social Network&quot;
+## 
+## [[1]]$Year
+## [1] &quot;2010&quot;
+## 
+## [[1]]$Rated
+## [1] &quot;PG-13&quot;
+## 
+## [[1]]$Released
+## [1] &quot;01 Oct 2010&quot;
+## 
+## [[1]]$Runtime
+## [1] &quot;120 min&quot;
+## 
+## [[1]]$Genre
+## [1] &quot;Biography, Drama&quot;
+## 
+## [[1]]$Director
+## [1] &quot;David Fincher&quot;
+## 
+## [[1]]$Writer
+## [1] &quot;Aaron Sorkin, Ben Mezrich&quot;
+## 
+## [[1]]$Actors
+## [1] &quot;Jesse Eisenberg, Andrew Garfield, Justin Timberlake&quot;
+## 
+## [[1]]$Plot
+## [1] &quot;As Harvard student Mark Zuckerberg creates the social networking site that would become known as Facebook, he is sued by the twins who claimed he stole their idea and by the co-founder who was later squeezed out of the business.&quot;
+## 
+## [[1]]$Language
+## [1] &quot;English, French&quot;
+## 
+## [[1]]$Country
+## [1] &quot;United States&quot;
+## 
+## [[1]]$Awards
+## [1] &quot;Won 3 Oscars. 174 wins &amp; 188 nominations total&quot;
+## 
+## [[1]]$Poster
+## [1] &quot;https://m.media-amazon.com/images/M/MV5BMjlkNTE5ZTUtNGEwNy00MGVhLThmZjMtZjU1NDE5Zjk1NDZkXkEyXkFqcGc@._V1_SX300.jpg&quot;
+## 
+## [[1]]$Ratings
+## [[1]]$Ratings[[1]]
+## [[1]]$Ratings[[1]]$Source
+## [1] &quot;Internet Movie Database&quot;
+## 
+## [[1]]$Ratings[[1]]$Value
+## [1] &quot;7.8/10&quot;
+## 
+## 
+## [[1]]$Ratings[[2]]
+## [[1]]$Ratings[[2]]$Source
+## [1] &quot;Rotten Tomatoes&quot;
+## 
+## [[1]]$Ratings[[2]]$Value
+## [1] &quot;96%&quot;
+## 
+## 
+## [[1]]$Ratings[[3]]
+## [[1]]$Ratings[[3]]$Source
+## [1] &quot;Metacritic&quot;
+## 
+## [[1]]$Ratings[[3]]$Value
+## [1] &quot;95/100&quot;
+## 
+## 
+## 
+## [[1]]$Metascore
+## [1] &quot;95&quot;
+## 
+## [[1]]$imdbRating
+## [1] &quot;7.8&quot;
+## 
+## [[1]]$imdbVotes
+## [1] &quot;779,958&quot;
+## 
+## [[1]]$imdbID
+## [1] &quot;tt1285016&quot;
+## 
+## [[1]]$Type
+## [1] &quot;movie&quot;
+## 
+## [[1]]$DVD
+## [1] &quot;N/A&quot;
+## 
+## [[1]]$BoxOffice
+## [1] &quot;$96,962,694&quot;
+## 
+## [[1]]$Production
+## [1] &quot;N/A&quot;
+## 
+## [[1]]$Website
+## [1] &quot;N/A&quot;
+## 
+## [[1]]$Response
+## [1] &quot;True&quot;
+## 
+## 
+## [[2]]
+## [[2]]$Title
+## [1] &quot;Was glücklich macht&quot;
+## 
+## [[2]]$Year
+## [1] &quot;2009&quot;
+## 
+## [[2]]$Rated
+## [1] &quot;N/A&quot;
+## 
+## [[2]]$Released
+## [1] &quot;12 Apr 2009&quot;
+## 
+## [[2]]$Runtime
+## [1] &quot;89 min&quot;
+## 
+## [[2]]$Genre
+## [1] &quot;Comedy, Romance&quot;
+## 
+## [[2]]$Director
+## [1] &quot;Matthias Tiefenbacher&quot;
+## 
+## [[2]]$Writer
+## [1] &quot;Edda Leesch&quot;
+## 
+## [[2]]$Actors
+## [1] &quot;Peter Sattmann, Jutta Speidel, Cornelia Schmaus&quot;
+## 
+## [[2]]$Plot
+## [1] &quot;After overseeing major projects as a construction manager for many years and having traveled all over the world, Peter is taking early retirement. First of all, he has big plans for the new phase of his life: he can finally make u...&quot;
+## 
+## [[2]]$Language
+## [1] &quot;German&quot;
+## 
+## [[2]]$Country
+## [1] &quot;Germany&quot;
+## 
+## [[2]]$Awards
+## [1] &quot;N/A&quot;
+## 
+## [[2]]$Poster
+## [1] &quot;https://m.media-amazon.com/images/M/MV5BZGYxZWFjYmYtMGVlZC00MTM2LWI3ZGYtMjBhYWM1M2ZlYmM2XkEyXkFqcGdeQXVyMTA4MjcxNjM2._V1_SX300.jpg&quot;
+## 
+## [[2]]$Ratings
+## [[2]]$Ratings[[1]]
+## [[2]]$Ratings[[1]]$Source
+## [1] &quot;Internet Movie Database&quot;
+## 
+## [[2]]$Ratings[[1]]$Value
+## [1] &quot;4.4/10&quot;
+## 
+## 
+## 
+## [[2]]$Metascore
+## [1] &quot;N/A&quot;
+## 
+## [[2]]$imdbRating
+## [1] &quot;4.4&quot;
+## 
+## [[2]]$imdbVotes
+## [1] &quot;18&quot;
+## 
+## [[2]]$imdbID
+## [1] &quot;tt1285017&quot;
+## 
+## [[2]]$Type
+## [1] &quot;movie&quot;
+## 
+## [[2]]$DVD
+## [1] &quot;N/A&quot;
+## 
+## [[2]]$BoxOffice
+## [1] &quot;N/A&quot;
+## 
+## [[2]]$Production
+## [1] &quot;N/A&quot;
+## 
+## [[2]]$Website
+## [1] &quot;N/A&quot;
+## 
+## [[2]]$Response
+## [1] &quot;True&quot;</code></pre>
+</div>
+</div>
+<div id="get.rough.omdb.info" class="section level3">
+<h3><code>get.rough.omdb.info()</code></h3>
+<p>This function performs a rough search for movies based on a
+<strong>partial title</strong>, with optional filters like
+<strong>minimum rating</strong>, <strong>genre</strong>, and
+<strong>sort order</strong>.</p>
+<div id="parameters-3" class="section level4">
+<h4>Parameters</h4>
+<ul>
+<li><code>title</code>: The partial title of the movie (e.g.,
+<code>&quot;Avengers&quot;</code>).</li>
+<li><code>type</code>: The type of result, which can be
+<code>&quot;movie&quot;</code>, <code>&quot;series&quot;</code>, or
+<code>&quot;episode&quot;</code>.</li>
+<li><code>year</code>: The release year of the movie to filter the
+results.</li>
+<li><code>min_rating</code>: The minimum rating for the movie (e.g.,
+7).</li>
+<li><code>genre</code>: The genre of the movie (e.g.,
+<code>&quot;Action&quot;</code>).</li>
+<li><code>sort_order</code>: The order in which the results are sorted
+(<code>&quot;asc&quot;</code>, <code>&quot;desc&quot;</code>, or <code>&quot;none&quot;</code>).</li>
+</ul>
+</div>
+<div id="example-4" class="section level4">
+<h4>Example</h4>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a><span class="co"># Rough search for movies with title &quot;Avengers&quot; and minimum rating of 7</span></span>
+<span id="cb10-2"><a href="#cb10-2" tabindex="-1"></a>rough_results <span class="ot">&lt;-</span> <span class="fu">get.rough.omdb.info</span>(<span class="at">title =</span> <span class="st">&quot;Avengers&quot;</span>, <span class="at">min_rating =</span> <span class="dv">7</span>, <span class="at">genre =</span> <span class="st">&quot;Action&quot;</span>)</span>
+<span id="cb10-3"><a href="#cb10-3" tabindex="-1"></a><span class="fu">print</span>(rough_results)</span></code></pre></div>
+<pre><code>##                                     Title      Year   Type    imdbID
+## 1                            The Avengers      2012  movie tt0848228
+## 2                       Avengers: Endgame      2019  movie tt4154796
+## 3                  Avengers: Infinity War      2018  movie tt4154756
+## 4                 Avengers: Age of Ultron      2015  movie tt2395427
+## 6  The Avengers: Earth&#39;s Mightiest Heroes 2010–2024 series tt1626038
+## 8                            The Avengers 1961–1969 series tt0054518
+## 10                      Avengers Assemble 2012–2019 series tt2455546
+##                                                                                                                Poster
+## 1  https://m.media-amazon.com/images/M/MV5BNGE0YTVjNzUtNzJjOS00NGNlLTgxMzctZTY4YTE1Y2Y1ZTU4XkEyXkFqcGc@._V1_SX300.jpg
+## 2                  https://m.media-amazon.com/images/M/MV5BMTc5MDE2ODcwNV5BMl5BanBnXkFtZTgwMzI2NzQ2NzM@._V1_SX300.jpg
+## 3                  https://m.media-amazon.com/images/M/MV5BMjMxNjY2MDU1OV5BMl5BanBnXkFtZTgwNzY1MTUwNTM@._V1_SX300.jpg
+## 4  https://m.media-amazon.com/images/M/MV5BODBhYTg1NGQtNGVmNS00ZTdiLThjYTYtZDFkNzRiNTZmNDZjXkEyXkFqcGc@._V1_SX300.jpg
+## 6  https://m.media-amazon.com/images/M/MV5BY2NkYTNlMTQtZWVjNC00MTk4LTkzNGEtYjAyOTYxYWFjYTVkXkEyXkFqcGc@._V1_SX300.jpg
+## 8  https://m.media-amazon.com/images/M/MV5BMDhhYWIxMzYtNTY2Zi00MTZiLWI2ZDUtYjNiNTY5YzA5MWNkXkEyXkFqcGc@._V1_SX300.jpg
+## 10                 https://m.media-amazon.com/images/M/MV5BMTY0NTUyMDQwOV5BMl5BanBnXkFtZTgwNjAwMTA0MDE@._V1_SX300.jpg
+##                           Genre imdbRating
+## 1                Action, Sci-Fi        8.0
+## 2     Action, Adventure, Sci-Fi        8.4
+## 3     Action, Adventure, Sci-Fi        8.4
+## 4     Action, Adventure, Sci-Fi        7.3
+## 6  Animation, Action, Adventure        8.3
+## 8         Action, Comedy, Crime        8.3
+## 10 Animation, Action, Adventure        7.0</code></pre>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" tabindex="-1"></a><span class="co"># Sort the results by IMDb rating in descending order</span></span>
+<span id="cb12-2"><a href="#cb12-2" tabindex="-1"></a>sorted_results <span class="ot">&lt;-</span> <span class="fu">get.rough.omdb.info</span>(<span class="at">title =</span> <span class="st">&quot;Avengers&quot;</span>, <span class="at">min_rating =</span> <span class="dv">7</span>, <span class="at">sort_order =</span> <span class="st">&quot;desc&quot;</span>)</span>
+<span id="cb12-3"><a href="#cb12-3" tabindex="-1"></a><span class="fu">print</span>(sorted_results)</span></code></pre></div>
+<pre><code>##                                     Title      Year   Type    imdbID
+## 2                       Avengers: Endgame      2019  movie tt4154796
+## 3                  Avengers: Infinity War      2018  movie tt4154756
+## 6  The Avengers: Earth&#39;s Mightiest Heroes 2010–2024 series tt1626038
+## 8                            The Avengers 1961–1969 series tt0054518
+## 1                            The Avengers      2012  movie tt0848228
+## 4                 Avengers: Age of Ultron      2015  movie tt2395427
+## 10                      Avengers Assemble 2012–2019 series tt2455546
+##                                                                                                                Poster
+## 2                  https://m.media-amazon.com/images/M/MV5BMTc5MDE2ODcwNV5BMl5BanBnXkFtZTgwMzI2NzQ2NzM@._V1_SX300.jpg
+## 3                  https://m.media-amazon.com/images/M/MV5BMjMxNjY2MDU1OV5BMl5BanBnXkFtZTgwNzY1MTUwNTM@._V1_SX300.jpg
+## 6  https://m.media-amazon.com/images/M/MV5BY2NkYTNlMTQtZWVjNC00MTk4LTkzNGEtYjAyOTYxYWFjYTVkXkEyXkFqcGc@._V1_SX300.jpg
+## 8  https://m.media-amazon.com/images/M/MV5BMDhhYWIxMzYtNTY2Zi00MTZiLWI2ZDUtYjNiNTY5YzA5MWNkXkEyXkFqcGc@._V1_SX300.jpg
+## 1  https://m.media-amazon.com/images/M/MV5BNGE0YTVjNzUtNzJjOS00NGNlLTgxMzctZTY4YTE1Y2Y1ZTU4XkEyXkFqcGc@._V1_SX300.jpg
+## 4  https://m.media-amazon.com/images/M/MV5BODBhYTg1NGQtNGVmNS00ZTdiLThjYTYtZDFkNzRiNTZmNDZjXkEyXkFqcGc@._V1_SX300.jpg
+## 10                 https://m.media-amazon.com/images/M/MV5BMTY0NTUyMDQwOV5BMl5BanBnXkFtZTgwNjAwMTA0MDE@._V1_SX300.jpg
+##                           Genre imdbRating
+## 2     Action, Adventure, Sci-Fi        8.4
+## 3     Action, Adventure, Sci-Fi        8.4
+## 6  Animation, Action, Adventure        8.3
+## 8         Action, Comedy, Crime        8.3
+## 1                Action, Sci-Fi        8.0
+## 4     Action, Adventure, Sci-Fi        7.3
+## 10 Animation, Action, Adventure        7.0</code></pre>
+</div>
+</div>
+</div>
+<div id="usage-overview" class="section level2">
+<h2>Usage Overview</h2>
+<p>To use the functions in this package, please follow these steps:</p>
+<ol style="list-style-type: decimal">
+<li><p>Set your OMDB API key using the <code>set.omdb.api.key()</code>
+function. After setting the OMDB API key, you can choose <strong>Steps
+2, 3, 4</strong> freely to get your target movie information.</p></li>
+<li><p>Use <code>get.accurate.omdb.info()</code> to fetch detailed movie
+information by IMDb ID or title.</p></li>
+<li><p>Use <code>get.batch.accurate.omdb.info()</code> to fetch
+information for a batch of movies.</p></li>
+<li><p>Use <code>get.rough.omdb.info()</code> for rough searches based
+on a partial title with additional filters (e.g., rating,
+genre).</p></li>
+<li><p>After finishing, you can remove your API key using
+<code>unset.omdb.api.key()</code>.</p></li>
+</ol>
+</div>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
