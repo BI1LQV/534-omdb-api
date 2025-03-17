@@ -17,10 +17,12 @@ jobs:
         with:
           r-version: 'release'
 
-      - name: Install dependencies
-        run: |
-          install.packages(c("devtools", "testthat", "future"))
-        shell: Rscript {0}
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          packages: |
+            any::devtools
+            any::testthat
+            any::future
 
       - name: Run unit tests
         run: Rscript scripts/test.r
