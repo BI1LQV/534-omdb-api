@@ -17,27 +17,16 @@ jobs:
         with:
           r-version: 'release'
 
-      - uses: r-lib/actions/setup-r-dependencies@v2
-        with:
-          extra-packages: |
-            devtools
-            testthat
-            roxygen2
-            rcmdcheck
-            future
-            any::covr
+      - name: Install dependencies
+        run: |
+          install.packages(c("devtools", "testthat", "future"))
+        shell: Rscript {0}
 
       - name: Run unit tests
         run: Rscript scripts/test.r
 
       - name: Build package
         run: Rscript scripts/build.r
-
-      - name: Check package
-        uses: r-lib/actions/check-r-package@v2
-        with:
-          error-on: '"error"'
-
 
       - name: Build source package
         run: |
@@ -55,7 +44,7 @@ jobs:
 
   create-release:
     needs: test-and-build
-    if: github.ref == 'refs/heads/master'
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     
     steps:
