@@ -1,0 +1,76 @@
+name: R Package CI/CD
+
+on:
+  push:
+    branches: [ '**' ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  test-and-build:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: 'release'
+
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          extra-packages: |
+            devtools
+            testthat
+            roxygen2
+            rcmdcheck
+            any::covr
+
+      - name: Run unit tests
+        run: Rscript scripts/test.r
+
+      - name: Build package
+        run: Rscript scripts/build.r
+
+      - name: Check package
+        uses: r-lib/actions/check-r-package@v2
+        with:
+          error-on: '"error"'
+
+      # 构建源码包并上传为 artifact
+      - name: Build source package
+        run: |
+          PKG_VERSION=$(grep "Version:" DESCRIPTION | cut -d' ' -f2)
+          PKG_NAME=$(grep "Package:" DESCRIPTION | cut -d' ' -f2)
+          R CMD build .
+          echo "PKG_FILE=${PKG_NAME}_${PKG_VERSION}.tar.gz" >> $GITHUB_ENV
+          echo "PKG_VERSION=${PKG_VERSION}" >> $GITHUB_ENV
+
+      - name: Upload package artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: r-package
+          path: ${{ env.PKG_FILE }}
+
+  create-release:
+    needs: test-and-build
+    if: github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Download package artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: r-package
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: "*.tar.gz"
+          tag_name: v${{ env.PKG_VERSION }}
+          name: Release v${{ env.PKG_VERSION }}
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
