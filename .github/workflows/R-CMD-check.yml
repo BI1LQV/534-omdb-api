@@ -24,6 +24,7 @@ jobs:
             testthat
             roxygen2
             rcmdcheck
+            future
             any::covr
 
       - name: Run unit tests
