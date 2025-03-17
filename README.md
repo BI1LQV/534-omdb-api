@@ -1,6 +1,6 @@
 # 534-omdb-api
 
-[![Travis build status](https://travis-ci.org/bi1lqv/534-omdb-api.svg?branch=master)](https://travis-ci.org/bi1lqv/534-omdb-api)
+[![R Package CI/CD](https://github.com/bi1lqv/534-omdb-api/actions/workflows/R-CMD-check.yml/badge.svg)](https://github.com/bi1lqv/534-omdb-api/actions/workflows/R-CMD-check.yml/badge.svg)
 
 An R package for interacting with the OMDB (Open Movie Database) API.
 
@@ -16,18 +16,18 @@ devtools::install_github("bi1lqv/534-omdb-api")
 ## Usage
 
 ```r
-library(omdbapi)
+library(OMDB.API)
 
-# Search for movies
-search_movies("The Matrix")
-
-# Get detailed information about a movie
-get_movie("tt0133093")  # The Matrix
+set.omdb.api.key("YOUR KEY")
+movie_info_1 <- get.accurate.omdb.info(title = "Avengers")
+print(movie_info_1)
 ```
+
+See more details in [vignettes](./vignettes/package-vignette.Rmd).
 
 ## Development
 
-This project uses Travis CI for continuous integration. The build status badge above shows the current state of the master branch.
+This project uses Github Action for continuous integration. The build status badge above shows the current state of the master branch. See more details in [code of conduct](./CODE_OF_CONDUCT.md).
 
 ## License
 

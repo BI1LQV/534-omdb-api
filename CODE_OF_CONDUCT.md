@@ -28,6 +28,11 @@
   2. Address any build errors or warnings
   3. Ensure the package builds successfully
 
+### Continuous Integration (CI)
+- The project utilizes GitHub Actions for continuous integration
+- CI pipeline automates the package building process
+- CI runs automatically after each code commit
+
 ## Team Interaction Guidelines
 
 ### Code Review Process

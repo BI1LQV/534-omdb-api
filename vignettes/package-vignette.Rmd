@@ -134,3 +134,45 @@ To use the functions in this package, please follow these steps:
 4. Use `get.rough.omdb.info()` for rough searches based on a partial title with additional filters (e.g., rating, genre).
 
 5. After finishing, you can remove your API key using `unset.omdb.api.key()`.
+
+## Data Visualization Examples
+
+Let's demonstrate how to create some visualizations using the movie data we fetch from OMDB API.
+
+```{r}
+library(ggplot2)
+library(dplyr)
+
+# Set API key for demonstration
+set.omdb.api.key("22bda3a2")
+
+# Get Avengers movies data
+avengers_movies <- get.rough.omdb.info("Avengers", min_rating = 0)
+
+# Basic data cleaning
+avengers_movies$Year <- as.numeric(avengers_movies$Year)
+avengers_movies$imdbRating <- as.numeric(avengers_movies$imdbRating)
+
+# Create a simple scatter plot
+ggplot(avengers_movies, aes(x = Year, y = imdbRating)) +
+  geom_point(color = "blue", alpha = 0.6) +
+  geom_smooth(method = "loess", se = FALSE, color = "red") +
+  labs(title = "Avengers Movies: Rating Trends Over Time",
+       x = "Release Year",
+       y = "IMDB Rating") +
+  theme_minimal()
+
+# Create a simple histogram of ratings
+ggplot(avengers_movies, aes(x = imdbRating)) +
+  geom_histogram(binwidth = 0.5, fill = "skyblue", color = "black") +
+  labs(title = "Distribution of Avengers Movie Ratings",
+       x = "IMDB Rating",
+       y = "Count") +
+  theme_minimal()
+```
+
+These visualizations help us understand:
+
+1. The first plot shows how Avengers movies' ratings have changed over time, helping us identify any trends in movie quality over the years.
+
+2. The second plot shows the distribution of ratings for Avengers-related movies, giving us an overview of how these movies typically perform.
